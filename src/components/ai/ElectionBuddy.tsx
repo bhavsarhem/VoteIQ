@@ -15,6 +15,20 @@ const GREETING = "Namaste! 🙏 I'm **Election Buddy** — your guide to Indian 
 
 let idCounter = 1;
 
+function TypewriterText({ text, renderFn, delay = 10 }: { text: string; renderFn: (t: string) => React.ReactNode; delay?: number }) {
+  const [displayed, setDisplayed] = useState("");
+  useEffect(() => {
+    let i = 0;
+    const t = setInterval(() => {
+      setDisplayed(text.slice(0, i + 1));
+      i++;
+      if (i >= text.length) clearInterval(t);
+    }, delay);
+    return () => clearInterval(t);
+  }, [text, delay]);
+  return <>{renderFn(displayed)}</>;
+}
+
 export default function ElectionBuddy() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -139,20 +153,23 @@ export default function ElectionBuddy() {
               style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "50%", width: 32, height: 32, color: "rgba(255,255,255,0.5)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, transition: "all 0.2s" }}
               onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.12)"; (e.currentTarget as HTMLButtonElement).style.color = "#fff"; }}
               onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.06)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.5)"; }}
-            >✕</button>
+            >
+              ✕
+            </button>
           </div>
 
           {/* Error Banner */}
           {error && (
-            <div style={{ background: "rgba(255,50,50,0.1)", border: "1px solid rgba(255,50,50,0.2)", padding: "8px 16px", fontSize: 12, color: "#ff6b6b", fontFamily: "monospace" }}>
+            <div style={{ background: "rgba(255,50,50,0.1)", borderBottom: "1px solid rgba(255,50,50,0.2)", padding: "10px 16px", color: "#ff8080", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
               {error}
-              <button onClick={() => setError("")} style={{ float: "right", background: "none", border: "none", color: "#ff6b6b", cursor: "pointer" }}>✕</button>
             </div>
           )}
 
           {/* Messages */}
           <div style={{ flex: 1, overflowY: "auto", padding: "16px", display: "flex", flexDirection: "column", gap: 12, scrollbarWidth: "thin", scrollbarColor: "rgba(255,153,51,0.2) transparent" }}>
-            {messages.map((msg) => (
+            {messages.map((msg, idx) => {
+              const isLastModelMsg = msg.role === "model" && idx === messages.length - 1 && msg.id > 1; // Don't animate greeting
+              return (
               <div key={msg.id} style={{ display: "flex", justifyContent: msg.role === "user" ? "flex-end" : "flex-start", alignItems: "flex-end", gap: 8 }}>
                 {msg.role === "model" && (
                   <div style={{ width: 28, height: 28, borderRadius: "50%", background: "linear-gradient(135deg,#FF9933,#FFB366)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, flexShrink: 0, boxShadow: "0 0 8px rgba(255,153,51,0.3)" }}>
@@ -176,10 +193,10 @@ export default function ElectionBuddy() {
                     ? "0 4px 16px rgba(255,153,51,0.25)"
                     : "0 2px 8px rgba(0,0,0,0.3)",
                 }}>
-                  {renderText(msg.text)}
+                  {isLastModelMsg ? <TypewriterText text={msg.text} renderFn={renderText} /> : renderText(msg.text)}
                 </div>
               </div>
-            ))}
+            )})}
 
             {/* Typing indicator */}
             {loading && (
