@@ -53,7 +53,7 @@ Built for maximum performance, premium aesthetics, and infinite scalability:
    ```bash
    npm run dev
    ```
-   Open [http://localhost:3000](http://localhost:3000) to view the application.
+   Open [http://localhost:3000](http://localhost:8080) to view the application.
 
 ## ☁️ Deploying to Google Cloud Run
 
